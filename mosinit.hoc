@@ -1,0 +1,19 @@
+// use NEURON -- VERSION 8.0.0-2
+
+load_file("nrngui.hoc")
+//load_file("init_eg.hoc")
+//xopen("$(NEURONHOME)/lib/hoc/noload.hoc")
+load_proc("nrnmainmenu")
+
+xopen("KB-20100810.CNG.hoc")
+
+xopen("Cell parameters_syn_110723.hoc")
+
+parameters()
+geom_nseg()
+
+
+load_file("test_140923.ses")
+
+init_channels()
+params_all()

@@ -1,0 +1,469 @@
+{load_file("nrngui.hoc")}
+objectvar save_window_, rvp_
+objectvar scene_vector_[10]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{pwman_place(0,0,0)}
+
+/*{
+save_window_ = new Graph(0)
+save_window_.size(-0.1,8,-0.043,-1.86265e-09)
+scene_vector_[3] = save_window_
+{save_window_.view(-0.1, -0.043, 8.1, 0.043, 823, 468, 524.7, 442)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addexpr("apic[8].ican(1)", 3, 1, 0.798285, 0.661293, 2)
+save_window_.addexpr("apic[8].icar2(1)", 4, 1, 0.794854, 0.937298, 2)
+save_window_.addexpr("apic[8].icat(1)", 5, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].icapq(1)", 6, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].ical2(1)", 2, 1, 0.796569, 0.837233, 2)
+save_window_.addexpr("apic[8].ican(1)+apic[8].icar2(1)+apic[8].icapq(1)+apic[8].ical2(1)+apic[8].icat(1)", 1, 1, 0.796569, 0.922381, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-0.1,8,0,0.35)
+scene_vector_[4] = save_window_
+{save_window_.view(-0.1, 0, 8.1, 0.35, 2, 319, 396.9, 248.5)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addexpr("apic[8].ik_sk2(1)", 6, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].ik_bk2(1)", 7, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].ik_Kv7(1)", 4, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].ikv1_Kv1(1)", 3, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].ik_kdr(1)", 2, 1, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-0.1,8,5.58794e-09,0.16)
+scene_vector_[5] = save_window_
+{save_window_.view(-0.1, 5.58794e-09, 8.1, 0.16, 409, 309, 421.2, 248.5)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addexpr("soma[0].ik_sk(0.5)", 6, 1, 0.8, 0.9, 2)
+save_window_.addexpr("soma[0].ik_bks(0.5)", 7, 1, 0.8, 0.9, 2)
+save_window_.addexpr("soma[0].ik_Kv7(0.5)", 4, 1, 0.8, 0.9, 2)
+save_window_.addexpr("soma[0].ikv1_Kv1(0.5)", 3, 1, 0.8, 0.9, 2)
+save_window_.addexpr("soma[0].ik_kdr(0.5)", 2, 1, 0.8, 0.9, 2)
+}*/
+/*{
+save_window_ = new Graph(0)
+save_window_.size(-0.1,8,-4.47035e-08,0.89)
+scene_vector_[6] = save_window_
+{save_window_.view(-0.1, -4.47035e-08, 8.1, 0.89, 99, 55, 524.7, 248.5)}
+graphList[1].append(save_window_)
+save_window_.save_name("graphList[1].")
+save_window_.addexpr("axon[0].ik_sk(0.5)", 6, 1, 0.8, 0.9, 2)
+save_window_.addexpr("axon[0].ik_bks(0.5)", 7, 1, 0.8, 0.9, 2)
+save_window_.addexpr("axon[0].ik_Kv7(0.5)", 4, 1, 0.8, 0.9, 2)
+save_window_.addexpr("axon[0].ikv1_Kv1(0.5)", 3, 1, 0.8, 0.9, 2)
+save_window_.addexpr("axon[0].ik_kdr(0.5)", 2, 1, 0.8, 0.9, 2)
+}*/
+{
+xpanel("RunControl", 0)
+v_init = -80
+xvalue("Init","v_init", 1,"stdinit()", 1, 1 )
+xbutton("Init & Run","run()")
+xbutton("Stop","stoprun=1")
+runStopAt = 80
+xvalue("Continue til","runStopAt", 1,"{continuerun(runStopAt) stoprun=1}", 1, 1 )
+runStopIn = 8
+xvalue("Continue for","runStopIn", 1,"{continuerun(t + runStopIn) stoprun=1}", 1, 1 )
+xbutton("Single Step","steprun()")
+t = 8
+xvalue("t","t", 2 )
+tstop = 8
+xvalue("Tstop","tstop", 1,"tstop_changed()", 0, 1 )
+dt = 0.01
+xvalue("dt","dt", 1,"setdt()", 0, 1 )
+steps_per_ms = 100
+xvalue("Points plotted/ms","steps_per_ms", 1,"setdt()", 0, 1 )
+screen_update_invl = 0.1
+xvalue("Scrn update invl","screen_update_invl", 1,"", 0, 1 )
+realtime = 18.71
+xvalue("Real Time","realtime", 0,"", 0, 1 )
+xpanel(1000,159)
+}
+/*{
+xpanel("pas", 0)
+Ri = 160
+xvalue("Ri","Ri", 1,"init_channels()", 0, 0 )
+Rm = 30000
+xvalue("Rm","Rm", 1,"init_channels()", 0, 0 )
+xpanel(366,12)
+}
+{
+xpanel("Concentration", 0)
+na12_soma = 70
+xvalue("na12_soma","na12_soma", 1," init_channels()", 0, 0 )
+na12_dend = 55
+xvalue("na12_dend","na12_dend", 1," init_channels()", 0, 0 )
+ na_121 = 1250
+xvalue(" na_121"," na_121", 1," init_channels()", 0, 0 )
+ na_122 = 2700
+xvalue(" na_122"," na_122", 1," init_channels()", 0, 0 )
+ na_123 = 1450
+xvalue(" na_123"," na_123", 1," init_channels()", 0, 0 )
+ na_124 = 975
+xvalue(" na_124"," na_124", 1," init_channels()", 0, 0 )
+ na_ais1 = 0
+xvalue(" na_ais1"," na_ais1", 1," init_channels()", 0, 0 )
+ na_ais2 = 1800
+xvalue(" na_ais2"," na_ais2", 1," init_channels()", 0, 0 )
+ na_ais3 = 2500
+xvalue(" na_ais3"," na_ais3", 1," init_channels()", 0, 0 )
+ na_ais4 = 1800
+xvalue(" na_ais4"," na_ais4", 1," init_channels()", 0, 0 )
+nagna	 = 0.5
+xvalue("nagna","nagna	", 1," init_channels()", 0, 0 )
+ih_soma	 = 0.0001
+xvalue("ih_soma","ih_soma	", 1," init_channels()", 0, 0 )
+ih_axon	 = 0.0002
+xvalue("ih_axon","ih_axon	", 1," init_channels()", 0, 0 )
+A_ih_dend	 = 0.0001
+xvalue("A_ih_dend","A_ih_dend	", 1," init_channels()", 0, 0 )
+xpanel(1126,218)
+}
+{
+xpanel("Concentration", 0)
+Kv1_soma = 40
+xvalue("Kv1_soma","Kv1_soma", 1," init_channels()", 0, 0 )
+Kv1_dend = 0
+xvalue("Kv1_dend","Kv1_dend", 1," init_channels()", 0, 0 )
+Kv1_ais = 10
+xvalue("Kv1_ais","Kv1_ais", 1," init_channels()", 0, 0 )
+Kv7_soma = 50
+xvalue("Kv7_soma","Kv7_soma", 1," init_channels()", 0, 0 )
+Kv7_ais = 30
+xvalue("Kv7_ais","Kv7_ais", 1," init_channels()", 0, 0 )
+Kv7_dend = 10
+xvalue("Kv7_dend","Kv7_dend", 1," init_channels()", 0, 0 )
+kdr_soma = 0.05
+xvalue("kdr_soma","kdr_soma", 1," init_channels()", 0, 0 )
+kdr_dend = 0.01
+xvalue("kdr_dend","kdr_dend", 1," init_channels()", 0, 0 )
+kdr_axon = 0.1
+xvalue("kdr_axon","kdr_axon", 1," init_channels()", 0, 0 )
+xpanel(933,331)
+}
+{
+xpanel("Concentration", 0)
+cagca	 = 0.3
+xvalue("cagca","cagca	", 1," init_channels()", 0, 0 )
+cana_na12	 = 0.5
+xvalue("cana_na12","cana_na12	", 1," init_channels()", 0, 0 )
+cana_na16	 = 0
+xvalue("cana_na16","cana_na16	", 1," init_channels()", 0, 0 )
+gca_soma	 = 1e-05
+xvalue("gca_soma	","gca_soma	", 1," init_channels()", 0, 0 )
+gca_ais1	 = 5e-05
+xvalue("gca_ais1	","gca_ais1	", 1," init_channels()", 0, 0 )
+gca_ais2	 = 6e-05
+xvalue("gca_ais2	","gca_ais2	", 1," init_channels()", 0, 0 )
+gca_ais3	 = 0
+xvalue("gca_ais3	","gca_ais3	", 1," init_channels()", 0, 0 )
+git2_soma = 1e-05
+xvalue("git2_soma","git2_soma", 1," init_channels()", 0, 0 )
+git2_ais1 = 0.0002
+xvalue("git2_ais1","git2_ais1", 1," init_channels()", 0, 0 )
+git2_ais2 = 6e-05
+xvalue("git2_ais2","git2_ais2", 1," init_channels()", 0, 0 )
+git2_ais3 = 3e-06
+xvalue("git2_ais3","git2_ais3", 1," init_channels()", 0, 0 )
+gskca_soma = 4e-05
+xvalue("gskca_soma","gskca_soma", 1," init_channels()", 0, 0 )
+gbkca_soma = 0
+xvalue("gbkca_soma","gbkca_soma", 1," init_channels()", 0, 0 )
+gskca_ais = 0
+xvalue("gskca_ais","gskca_ais", 1," init_channels()", 0, 0 )
+gbkca_ais = 0
+xvalue("gbkca_ais","gbkca_ais", 1," init_channels()", 0, 0 )
+gcan_apic = 3e-06
+xvalue("gcan_apic","gcan_apic", 1," init_channels()", 0, 0 )
+gcal_apic = 0.00022
+xvalue("gcal_apic","gcal_apic", 1," init_channels()", 0, 0 )
+gcat_apic = 1e-05
+xvalue("gcat_apic","gcat_apic", 1," init_channels()", 0, 0 )
+gcar2_apic = 3e-05
+xvalue("gcar2_apic","gcar2_apic", 1," init_channels()", 0, 0 )
+gcapq_apic = 2e-06
+xvalue("gcapq_apic","gcapq_apic", 1," init_channels()", 0, 0 )
+gsk2_apic = 0
+xvalue("gsk2_apic","gsk2_apic", 1," init_channels()", 0, 0 )
+gbk2_apic = 0
+xvalue("gbk2_apic","gbk2_apic", 1," init_channels()", 0, 0 )
+xpanel(1257,90)
+}
+{
+xpanel("Ca dend coefficients", 0)
+cancoeff_sk2 = 0
+xvalue("cancoeff_sk2","cancoeff_sk2", 1," init_channels()", 0, 0 )
+carcoeff_sk2 = 0.15
+xvalue("carcoeff_sk2","carcoeff_sk2", 1," init_channels()", 0, 0 )
+catcoeff_sk2 = 0.1
+xvalue("catcoeff_sk2","catcoeff_sk2", 1," init_channels()", 0, 0 )
+calcoeff_sk2 = 0.1
+xvalue("calcoeff_sk2","calcoeff_sk2", 1," init_channels()", 0, 0 )
+capqcoeff_sk2 = 0.1
+xvalue("capqcoeff_sk2","capqcoeff_sk2", 1," init_channels()", 0, 0 )
+cancoeff_bk2 = 20
+xvalue("cancoeff_bk2","cancoeff_bk2", 1," init_channels()", 0, 0 )
+carcoeff_bk2 = 0
+xvalue("carcoeff_bk2","carcoeff_bk2", 1," init_channels()", 0, 0 )
+catcoeff_bk2 = 0
+xvalue("catcoeff_bk2","catcoeff_bk2", 1," init_channels()", 0, 0 )
+calcoeff_bk2 = 3
+xvalue("calcoeff_bk2","calcoeff_bk2", 1," init_channels()", 0, 0 )
+capqcoeff_bk2 = 0
+xvalue("capqcoeff_bk2","capqcoeff_bk2", 1," init_channels()", 0, 0 )
+xpanel(567,1161)
+}
+{
+xpanel("Ca soma/axon coefficients", 0)
+cahcoeff_sk = 0
+xvalue("cahcoeff_sk","cahcoeff_sk", 1," init_channels()", 0, 0 )
+carcoeff_sk = 0.1
+xvalue("carcoeff_sk","carcoeff_sk", 1," init_channels()", 0, 0 )
+carcoeff_bks = 0
+xvalue("carcoeff_bks","carcoeff_bks", 1," init_channels()", 0, 0 )
+calcoeff_bks = 0.1
+xvalue("calcoeff_bks","calcoeff_bks", 1," init_channels()", 0, 0 )
+cahcoeff_bks = 0.1
+xvalue("cahcoeff_bks","cahcoeff_bks", 1," init_channels()", 0, 0 )
+xpanel(1044,552)
+}
+{
+xpanel("catau", 0)
+catau_dend = 20
+xvalue("catau_dend","catau_dend", 1," change_tau_pump()", 0, 0 )
+catau_soma = 20
+xvalue("catau_soma","catau_soma", 1," change_tau_pump()", 0, 0 )
+xpanel(1038,84)
+}
+{
+xpanel("Simulate block axon[8]", 0)
+gna_block = 55
+xvalue("gna_block","gna_block", 1," simu_block()", 0, 0 )
+gcal_block = 0.0001
+xvalue("gcal_block","gcal_block", 1," simu_block()", 0, 0 )
+gcar_block = 3e-05
+xvalue("gcar_block","gcar_block", 1," simu_block()", 0, 0 )
+gcan_block = 2e-06
+xvalue("gcan_block","gcan_block", 1," simu_block()", 0, 0 )
+gcat_block = 1e-05
+xvalue("gcat_block","gcat_block", 1," simu_block()", 0, 0 )
+gcapq_block = 2e-06
+xvalue("gcapq_block","gcapq_block", 1," simu_block()", 0, 0 )
+gsk2_block = 0
+xvalue("gsk2_block","gsk2_block", 1," simu_block()", 0, 0 )
+gbk2_block = 500
+xvalue("gbk2_block","gbk2_block", 1," simu_block()", 0, 0 )
+xpanel(943,192)
+}
+{
+xpanel("IClamp[0] at soma[0](0.5)", 0)
+xlabel("IClamp[0] at soma[0](0.5)")
+stim.del = 1.35
+xvalue("del","stim.del", 1,"", 0, 1 )
+stim.dur = 3
+xvalue("dur","stim.dur", 1,"", 0, 1 )
+stim.amp = 5
+xvalue("amp","stim.amp", 1,"", 0, 1 )
+stim.i = 0
+xvalue("i","stim.i", 0,"", 0, 1 )
+xpanel(637,55)
+}
+
+{
+xpanel("CApq (Globals)", 0)
+ki_CApq = 2e-05
+xvalue("ki_CApq","ki_CApq", 1,"", 0, 0 )
+q10m_CApq = 3
+xvalue("q10m_CApq","q10m_CApq", 1,"", 0, 0 )
+q10Ampl_CApq = 2.1
+xvalue("q10Ampl_CApq","q10Ampl_CApq", 1,"", 0, 0 )
+minf_CApq = 0.052271
+xvalue("minf_CApq","minf_CApq", 1,"", 0, 0 )
+taum_CApq = 0.363286
+xvalue("taum_CApq","taum_CApq", 1,"", 0, 0 )
+usetable_CApq = 0
+xvalue("usetable_CApq","usetable_CApq", 1,"", 0, 0 )
+xpanel(534,144)
+}
+{
+xpanel("CAn (Globals)", 0)
+ki_CAn = 2e-05
+xvalue("ki_CAn","ki_CAn", 1,"", 0, 0 )
+q10m_CAn = 30
+xvalue("q10m_CAn","q10m_CAn", 1,"", 0, 0 )
+q10Ampl_CAn = 4
+xvalue("q10Ampl_CAn","q10Ampl_CAn", 1,"", 0, 0 )
+mshift_CAn = 0
+xvalue("mshift_CAn","mshift_CAn", 1,"", 0, 0 )
+minf_CAn = 0.052271
+xvalue("minf_CAn","minf_CAn", 1,"", 0, 0 )
+taum_CAn = 0.0288568
+xvalue("taum_CAn","taum_CAn", 1,"", 0, 0 )
+usetable_CAn = 0
+xvalue("usetable_CAn","usetable_CAn", 1,"", 0, 0 )
+xpanel(6,132)
+}
+{
+xpanel("cat (Globals)", 0)
+q10_cat = 5
+xvalue("q10_cat","q10_cat", 1,"", 0, 0 )
+mmin_cat = 0.2
+xvalue("mmin_cat","mmin_cat", 1,"", 0, 0 )
+hmin_cat = 10
+xvalue("hmin_cat","hmin_cat", 1,"", 0, 0 )
+a0h_cat = 0.015
+xvalue("a0h_cat","a0h_cat", 1,"", 0, 0 )
+zetah_cat = 3.5
+xvalue("zetah_cat","zetah_cat", 1,"", 0, 0 )
+vhalfh_cat = -75
+xvalue("vhalfh_cat","vhalfh_cat", 1,"", 0, 0 )
+gmh_cat = 0.6
+xvalue("gmh_cat","gmh_cat", 1,"", 0, 0 )
+a0m_cat = 0.04
+xvalue("a0m_cat","a0m_cat", 1,"", 0, 0 )
+zetam_cat = 2
+xvalue("zetam_cat","zetam_cat", 1,"", 0, 0 )
+vhalfm_cat = -50
+xvalue("vhalfm_cat","vhalfm_cat", 1,"", 0, 0 )
+gmm_cat = 0.1
+xvalue("gmm_cat","gmm_cat", 1,"", 0, 0 )
+mshift_cat = 0
+xvalue("mshift_cat","mshift_cat", 1,"", 0, 0 )
+hshift_cat = 0
+xvalue("hshift_cat","hshift_cat", 1,"", 0, 0 )
+hinf_cat = 0.0258753
+xvalue("hinf_cat","hinf_cat", 1,"", 0, 0 )
+htau_cat = 13.1269
+xvalue("htau_cat","htau_cat", 1,"", 0, 0 )
+minf_cat = 0.239603
+xvalue("minf_cat","minf_cat", 1,"", 0, 0 )
+mtau_cat = 2.87285
+xvalue("mtau_cat","mtau_cat", 1,"", 0, 0 )
+xpanel(216,216)
+}
+{
+xpanel("Cal2 (Globals)", 0)
+ki_Cal2 = 2e-05
+xvalue("ki_Cal2","ki_Cal2", 1,"", 0, 0 )
+q10m_Cal2 = 2
+xvalue("q10m_Cal2","q10m_Cal2", 1,"", 0, 0 )
+q10Ampl_Cal2 = 0.5
+xvalue("q10Ampl_Cal2","q10Ampl_Cal2", 1,"", 0, 0 )
+minf_Cal2 = 0.052271
+xvalue("minf_Cal2","minf_Cal2", 1,"", 0, 0 )
+taum_Cal2 = 0.567478
+xvalue("taum_Cal2","taum_Cal2", 1,"", 0, 0 )
+usetable_Cal2 = 0
+xvalue("usetable_Cal2","usetable_Cal2", 1,"", 0, 0 )
+xpanel(258,132)
+}
+{
+xpanel("bk2 (Globals)", 0)
+ek_bk2 = -85
+xvalue("ek_bk2","ek_bk2", 1,"", 0, 0 )
+tin_bk2 = 0.02
+xvalue("tin_bk2","tin_bk2", 1,"", 0, 0 )
+bkcoef_bk2 = 0.023
+xvalue("bkcoef_bk2","bkcoef_bk2", 1,"", 0, 0 )
+bkexp_bk2 = 1
+xvalue("bkexp_bk2","bkexp_bk2", 1,"", 0, 0 )
+tinsh_bk2 = 400
+xvalue("tinsh_bk2","tinsh_bk2", 1,"", 0, 0 )
+canco_bk2 = 20
+xvalue("canco_bk2","canco_bk2", 1,"", 0, 0 )
+car2co_bk2 = 0
+xvalue("car2co_bk2","car2co_bk2", 1,"", 0, 0 )
+calco_bk2 = 3
+xvalue("calco_bk2","calco_bk2", 1,"", 0, 0 )
+catco_bk2 = 0
+xvalue("catco_bk2","catco_bk2", 1,"", 0, 0 )
+capqco_bk2 = 0
+xvalue("capqco_bk2","capqco_bk2", 1,"", 0, 0 )
+f1_bk2 = 1000
+xvalue("f1_bk2","f1_bk2", 1,"", 0, 0 )
+f2_bk2 = 0.6
+xvalue("f2_bk2","f2_bk2", 1,"", 0, 0 )
+xpanel(12,432)
+}
+{
+xpanel("kdr (Globals)", 0)
+vhalfn_kdr = 13
+xvalue("vhalfn_kdr","vhalfn_kdr", 1,"", 0, 0 )
+a0n_kdr = 0.02
+xvalue("a0n_kdr","a0n_kdr", 1,"", 0, 0 )
+zetan_kdr = -3
+xvalue("zetan_kdr","zetan_kdr", 1,"", 0, 0 )
+gmn_kdr = 0.7
+xvalue("gmn_kdr","gmn_kdr", 1,"", 0, 0 )
+nmax_kdr = 2
+xvalue("nmax_kdr","nmax_kdr", 1,"", 0, 0 )
+q10_kdr = 1
+xvalue("q10_kdr","q10_kdr", 1,"", 0, 0 )
+ninf_kdr = 1.28227e-05
+xvalue("ninf_kdr","ninf_kdr", 1,"", 0, 0 )
+taun_kdr = 2
+xvalue("taun_kdr","taun_kdr", 1,"", 0, 0 )
+xpanel(108,480)
+}*/
+
+/*{
+save_window_ = new Graph(0)
+save_window_.size(-15.2817,16.6016,-0.001545,0.037005)
+scene_vector_[8] = save_window_
+{save_window_.view(-15.2817, -0.001545, 31.8833, 0.03855, 301, 247, 490.5, 359.2)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.addexpr("apic[8].m_bk2( 0.0135135 )", 1, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].z_bk2( 0.0135135 )", 2, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].z_bk2( 0.0135135 )*apic[8].z_bk2( 0.0135135 )*apic[8].m_bk2( 0.0135135 )", 3, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].z_bk2( 0.0135135 )*apic[8].m_bk2( 0.0135135 )", 4, 1, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-8.9407e-08,4.1,0.01,1)
+scene_vector_[9] = save_window_
+{save_window_.view(-8.9407e-08, 0.01, 4.1, 0.99, 326, 213, 737.1, 317.8)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.addexpr("apic[8].mexp_bk2", 1, 1, 0.8, 0.9, 2)
+save_window_.addexpr("apic[8].zexp_bk2", 2, 1, 0.8, 0.9, 2)
+}*/
+{
+save_window_ = new Graph(0)
+save_window_.size(0,8,-90,30)
+scene_vector_[7] = save_window_
+{save_window_.view(0, -90, 8, 120, 380, 30, 400, 233)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.color(9)
+save_window_.label(0.8, 0.92,"V(mV) apic[8]")
+save_window_.addexpr("","apic[8].v(1)", 2, 1, 0.8, 0.9, 2)
+//save_window_.addexpr("V(mV)",9)
+//save_window_.addvar("soma[0].v( 0.0555556 )", 1, 1, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(1.78814e-07,8.1,0,0.025)
+scene_vector_[2] = save_window_
+{save_window_.view(1.78814e-07, 0, 8.1, 0.025, 380, 410, 400, 233)}
+graphList[2].append(save_window_)
+save_window_.save_name("graphList[2].")
+//save_window_.addexpr("Cai(mM)",9)
+save_window_.addexpr("","apic[8].cai(1)", 3, 1, 0.8, 0.9, 2)
+save_window_.color(9)
+save_window_.label(0.8, 0.92,"Cai(mM) apic[8]")
+//save_window_.addexpr("apic[8].cani(1)", 2, 1, 0.8, 0.9, 2)
+//save_window_.addexpr("apic[8].cal2i(1)", 3, 1, 0.8, 0.9, 2)
+}
+{
+xpanel("Coupling Bk-CaN", 0)
+cancoeff_bk2 = 10
+xvalue("cancoeff_bk2","cancoeff_bk2", 1," init_channels()", 0, 0 )
+xpanel(100,400)
+}
+objectvar scene_vector_[1]
+{doNotify()}

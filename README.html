@@ -1,0 +1,34 @@
+<html>
+<p>Model
+files in the NEURON simulation environment (v.8.2.0) from the paper:</p>
+<p><b>"Kinetics and functional
+consequences of BK channels activation by
+N-type Ca2+ channels in the dendrite
+of mouse neocortical layer-5 pyramidal
+neurons.”</b></p>
+<p>By
+Blömer LA, Giacalone E, Abbas F, Filipis L,
+Tegolo D, Migliore M and Canepari M</p>
+<p>Front. Cell. Neurosci. 18:1353895. doi: 10.3389/fncel.2024.1353895</p>
+<p></p>
+<p>Compile
+the mod files with mknrndll (mswin or graphical mac) or nrnivmodl
+(unix/linux)). Start the simulation by (unix/linux) typing on the
+command line:</p>
+<p>nrngui
+mosinit.hoc</p>
+<p>or
+(mac os x) drag and dropping the mosinit.hoc file on the nrngui icon
+or (mswin) double clicking on the mosinit.hoc file.</p>
+<p><br/>
+<br/>
+</p>
+
+<p>
+Click on the buttons "ctrl vs CaN block," "ctrl vs BK block," and "ctrl vs BK block vs & BK/CaN block" to replicate respectively the simulations shown in the left, center, and right panels of Figure 8B. Next, modify the parameter "cancoeff_bk2" to 0 and repeat the aforementioned steps
+ to reproduce the previous simulations but without coupling between N-type VGCCs and BK CAKCs, as shown in Figure 8C.</p>
+<p>The
+simulations will reproduce the effects of coupling between BK CAKCs and N-type VGCCs in a
+biophysically accurate model.</p>
+
+</html>

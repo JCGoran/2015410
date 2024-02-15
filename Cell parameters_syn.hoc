@@ -1,0 +1,1063 @@
+load_proc("nrnmainmenu")
+load_file("nrngui.hoc")
+load_file("tautables.hoc")
+//load_file("init.hoc")
+
+
+
+
+objref stim
+access soma
+area(0.5)
+distance()
+
+proc geom_nseg() {
+	soma area(0.5) // make sure diam reflects 3d points
+	forall {nseg = int((L/(0.1*lambda_f(10000))+0.9)/2)*2+1}
+}
+
+soma {
+stim = new IClamp(0.5)
+stim.del=1.8
+stim.dur=4
+stim.amp=0
+}
+//--------------------------------------------------------------
+//Synaptic input
+//--------------------------------------------------------------
+objectvar syn[20], num_syn, ns[20], nc[20] , ns2, nc2,  syn_bas[20], num_syn_bas, ns_bas, nc_bas[20]
+
+proc place_syn(){local weight
+//place_syn(5e-3,1.5e-2,5)
+weight = $1 //1.5e-2
+
+//weight=5e-3
+weight2=weight*0.012+weight
+weight2=weight
+weight2=0
+/*access apic[8]{
+ns = new NetStim(.5)
+ns.number=1 
+//ns.interval=20
+ns.start=3
+ns.noise=0
+
+ns2 = new NetStim(.5)
+ns2.number=1 
+//ns.interval=20
+ns2.start=ns.start+7
+ns.noise=0
+
+syn= new Exp2Syn(.5)
+syn.tau1=1
+syn.tau2=3
+syn.e=0
+
+
+nc = new NetCon(ns, syn, 0, 0, weight)
+nc2= new NetCon(ns2, syn, 0, 0, weight2)
+}*/
+//------oblique syn----
+i=0
+forsec "apic" {
+if(distance(0.5)<200) {
+print secname(),distance(0.5)
+
+ns[i] = new NetStim(.5)
+ns[i].number=1 
+//ns.interval=20
+ns[i].start=30
+ns[i].noise=0
+
+syn[i]= new Exp2Syn(.5)
+syn[i].tau1=1
+syn[i].tau2=3
+syn[i].e=0
+
+nc[i] = new NetCon(ns, syn, 0, 0, weight)
+
+i=i+1
+}
+}
+
+
+//------basal syn------
+
+weight_bas=$2
+deltat=$3
+access dend[0] {
+ns_bas = new NetStim(.5)
+ns_bas.number=1 
+//ns.interval=20
+ns_bas.start=ns[0].start+deltat
+ns_bas.noise=0
+
+
+
+syn_bas= new Exp2Syn(.5)
+syn_bas.tau1=1
+syn_bas.tau2=3
+syn_bas.e=0
+
+
+nc_bas = new NetCon(ns_bas, syn_bas, 0, 0, weight_bas)
+}
+}
+
+objref ns, ncca1[50], synca1[50], ra, rb, oblist,rc,rd
+oblist= new Vector()
+oblist.append(1,2,3,4,5,6,9,10,48,49,50,51,53,52,54)
+
+//oblist.append(1,2,3,6,9,10,48,49,50,51,53,52,54)
+
+
+seedn=3
+nsyn=20
+
+ra = new Random ()
+rb= new Random ()
+rc= new Random ()
+rd= new Random ()
+ra.uniform(0,apicNum-1)
+rb.uniform(0,1)
+rc.uniform(0,oblist.size())
+rd.uniform(0,dendNum-1)
+
+soma {
+ns= new NetStim (.5)
+ns.number=10000000
+ns.start=10
+ns.interval=1
+ns.noise=0
+}
+
+
+for k = 0, nsyn-1 {
+synca1[k]= new Exp2Syn (.5)
+synca1[k].tau1= 0.5
+synca1[k].tau2= 5
+synca1[k].e= 0
+ncca1[k]= new NetCon (ns, synca1[k], 0, 0, 0)
+}
+//for i=0,oblist.size()-1{if(location == oblist.x[i]) print oblist.x[i]}
+proc insertsyn2(){
+for i=0, nsyn-1{
+   j=0
+   while(j==0){
+   location=int(rc.repick())   
+   tmp=rb.repick()  
+   peso=$1
+   access apic[oblist.x[location]] { 
+   j=1
+   synca1[i].loc(tmp)
+   print secname(),location, tmp, distance(tmp), peso
+   ncca1[i].weight=peso
+   }
+   }
+   
+}
+}
+
+proc insertsyn2_nr(){
+j=0
+for i=0, oblist.size-1{
+   location=oblist.x[i]
+   tmp=rb.repick()  
+   peso=$1
+   access apic[oblist.x[i]] { 
+   synca1[j].loc(tmp)
+   print secname(),location, tmp, distance(tmp), peso
+   ncca1[j].weight=peso
+   j=j+1
+   }
+   
+   
+}
+}
+
+proc insertsyn(){
+for i=0, nsyn-1{
+   j=0
+   while(j==0){
+   location=int(ra.repick())   
+   tmp=rb.repick()  
+   peso=$1
+   apic[location] {if (distance(tmp)>0 && distance(tmp)<330 ){
+   j=1
+   synca1[i].loc(tmp)
+   print location, tmp, distance(tmp),peso
+   ncca1[i].weight=peso
+   }
+}
+}
+}
+}
+deltat=-5
+soma {
+ns_bas= new NetStim (.5)
+ns_bas.number=10000000
+ns_bas.start=ns.start+deltat
+ns_bas.interval=1
+ns_bas.noise=0
+} 
+
+for k = 0, nsyn-1 {
+syn_bas[k]= new Exp2Syn (.5)
+syn_bas[k].tau1= 0.5
+syn_bas[k].tau2= 5
+syn_bas[k].e= 0
+nc_bas[k]= new NetCon (ns_bas, syn_bas[k], 0, 0, 0)
+}
+
+
+proc insertsyn_bas(){
+for i=0, nsyn-1{
+   j=0
+   while(j==0){
+   location=int(rd.repick())   
+   tmp=rb.repick()  
+   peso=$1
+   dend[location] {if (distance(tmp)>0 && distance(tmp)<100 ){
+   j=1
+   syn_bas[i].loc(tmp)
+   print location, tmp, distance(tmp),peso
+   nc_bas[i].weight=peso
+   }
+}
+}
+}
+}
+
+/*weight_bas=1e-5
+deltat=-5
+access dend[0]
+ns_bas = new NetStim(.5)
+ns_bas.number=1 
+//ns.interval=20
+ns_bas.start=ns.start+deltat
+ns_bas.noise=0
+
+
+
+syn_bas= new Exp2Syn(.5)
+syn_bas.tau1=0.5
+syn_bas.tau2=5
+syn_bas.e=0
+
+
+nc_bas = new NetCon(ns_bas, syn_bas, 0, 0, weight_bas)
+*/
+
+
+
+//--------
+//--------------------------------------------------------------
+//  Initialise user-defined membrane parameters 
+// --------------------------------------------------------------
+
+proc parameters() {
+	celsius = 33		
+	Ri = 160	   // 80 before 			
+	Cm = 1.0      		
+	Rm = 150000 // 15000 before       	
+	Vrest = -80
+	Spinescale = 1.5
+}
+
+// calcium buffering
+DCa_dend = 1
+k1buf_dend = 1
+k2buf_dend = 1
+TotalBuffer_dend = 1
+Dogb_dend = 1
+k1ind_dend = 1
+k2ind_dend = 1
+TotalPump_dend = 1
+
+DCa_axon = 0.6
+k1buf_axon = 570
+k2buf_axon = 5.7
+TotalBuffer_axon = 0.4
+Dogb_axon = 0.3
+k1ind_axon = 570
+k2ind_axon = 20
+TotalPump_axon = 1e-11
+TotalIndicator = 1
+
+// ----------------------------------------------------------------------------
+// Channel densities
+//-----------------------------------------------------------------------------
+
+//CAVE: check for parameter-settings in loaded sessions
+nagna=0.5
+
+na12_soma=220 //na_soma = 45
+
+na_121=250
+na_122=900
+na_123=350
+na_124=225
+
+na_ais1=0
+na_ais2=500
+na_ais3=700
+na_ais4=500
+
+na_node		=	7000
+na_collat	=	500									
+na_myelin	=	40
+max_distance_apic	=	300		// distance where gbar_na has reached na_dend
+max_distance_basal	=	100		//corresponding distance for basal dendrites
+
+vShift_na		=	10 // affecting activation and inactivation
+vShift_inact_na		=	10 // affects only inactivation
+q10_na			=	3
+q10h_na			=	3
+
+vShift_nax		=	10
+vShift_inact_nax	=	10		
+q10_nax			=	3.0
+q10h_nax		=	3.0
+
+// Nav1.2 in dendrite
+na12_dend		=	20 	// na_dend = 20
+cana_dend = 0
+
+length_constant_Kv_and_Kv1	=	80	//length constant of the exponential decay in um of Kv and Kv1
+						//according to Keren et al., 2009, JPhysiol, 587:1413-37	
+// Kv deleted!
+// delayed rectifier (instead of Kv)
+kdr_soma = 0.1
+kdr_dend = (na12_dend/na12_soma)*kdr_soma
+kdr_axon = 0.2
+
+// VGKC A-type current
+Kv1_dend	=	0.3		
+Kv1_ais		=	1500 		
+Kv1_soma	=	10
+Kv1_collat	=	400
+
+vShift_Kv1		=	10
+vShift_inact_Kv1	=	-15
+
+// VGKC M-current
+Kv7_soma	=	0.2	
+//Kv7_dend	=	0.2
+Kv7_ais		=	0.300000
+//Kv7_soma	=	300000	
+Kv7_dend	=	1
+//Kv7_ais		=	300000
+
+// ih current 
+ih_soma=0.0002
+ih_axon=0.0005
+A_ih_dend = 0.0002 	//0.000429 before, and also the J Neurosci value I aim for a ~20 Mohm input resistance	
+ih_dend = (A_ih_dend/4) * (-1)	// ih_dend=A_ih_dend*(-1)
+tau_ih_dend = 0.004	// tau_ih_dend = 0.003087	
+
+// VGCCs in AIS and soma
+ca_reduce_fac	=	0.1
+cagca=0.4
+gca_dend	=	2.0*ca_reduce_fac
+gca_soma	=	0.0005 
+gca_ais1		=	0.0005
+gca_ais2		=	3e-05 
+gca_ais3		=	0
+git2_soma	=	0.0003
+git2_ais1	=	0.0001
+git2_ais2	=	3e-05
+git2_ais3	=	3e-06
+git2_dend	=	2.0*ca_reduce_fac
+git2_apic	=	6.0*ca_reduce_fac
+
+// CaK channels AIS and soma
+gskca_soma	=	0.02
+gbkca_soma	=	10
+gskca_ais	=	0.02
+gbkca_ais	=	1000  
+gkca_dend	=	1.0*ca_reduce_fac
+
+gCa_HVA_apic_hot_fac=	1	//i.e. no Ca hot spot	//ca
+gCa_LVAst_apic_hot_fac=	1				//it2
+gCa_hot_start	=	685
+gCa_hot_end	=	885
+vshiftm_cah=-4
+vshifth_cah=-7.11157	
+ct1_cah=0.1
+ct2_cah=30
+
+spinescale	=	1.5
+sheaths		=	10	//number of myelin sheaths
+
+cdelay1=1.8
+cdelay2=315
+cduration1=4
+cduration2=7
+camplitude1=-0.15
+camplitude2=-0.3
+cicin=0
+
+// calcium channels dendrite
+gcal_apic=0
+gcan_apic=0
+gcat_apic=0
+gcar2_apic=0
+gcapq_apic=0
+
+// CaK channels in dendrite
+gsk2_apic=0
+gbk2_apic=0
+carcoeff_sk2=1
+cancoeff_sk2=1
+catcoeff_sk2=1
+calcoeff_sk2=1
+capqcoeff_sk2=1
+carcoeff_bk2=1
+cancoeff_bk2=1
+catcoeff_bk2=1
+calcoeff_bk2=1
+capqcoeff_bk2=1
+
+// blocking conductances
+gcal_block = 0
+gcan_block = 0
+gcat_block = 0
+gcar_block = 0
+gcapq_block = 0
+gsk2_block = 0
+gbk2_block = 0
+gna_block = 0
+
+
+// simulate block of specific channels in axon segment 8. This proc is run in init_channels to maintain block! 
+// define segments to be changed > "spread" of toxin
+objref apic_segments
+apic_segments = new Vector(1,0)
+apic_segments.append(1)
+apic_segments.append(2)
+apic_segments.append(3)
+apic_segments.append(6)
+apic_segments.append(7)
+apic_segments.append(8)
+apic_segments.append(9)
+apic_segments.append(10)
+apic_segments.append(11)
+apic_segments.append(48)
+apic_segments.append(49)
+apic_segments.append(50)
+apic_segments.append(51)
+apic_segments.append(52)
+apic_segments.append(54)
+
+proc simu_block(){
+	for i = 0, apic_segments.size()-1{
+		seg = apic_segments.x[i]
+		access apic[seg]
+		//access apic[8]
+		
+		// Ca channels
+		//if(ismembrane("cal")) {gcalbar_cal=gcal_block}
+		if(ismembrane("Cal2")) {PcalBar_Cal2=gcal_block}
+		if(ismembrane("CAn")) {PcanBar_CAn=gcan_block}
+		if(ismembrane("cat")) {gcatbar_cat=gcat_block}
+		if(ismembrane("CaR")) {pmax_CaR=gcar_block}
+		if(ismembrane("CApq")) {PcapqBar_CApq=gcapq_block}
+		
+		// CaK channels
+		if(ismembrane("sk2")) {gbar_sk2=gsk2_block}
+		if(ismembrane("bk2")) {gkbar_bk2=gbk2_block}
+
+		// Na channels
+		if(ismembrane("na12dend")) {gbar_na12dend=gna_block}
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Initialisation of passive and active properties, spine scaling, Rm and Cm
+//-----------------------------------------------------------------------------
+
+proc init_channels() {
+
+//all		
+	forall {
+		insert pas 	 
+		Ra=Ri 
+		e_pas=Vrest
+		g_pas=1/Rm
+		cm=Cm
+		insert nadifl
+		D_nadifl= 0.4
+	}
+
+// dendrites
+	for i=0,dendNum-1 {
+		dend[i] {
+		
+			g_pas=1/(Rm/spinescale)
+			cm=Cm*spinescale 
+			
+			//insert na 	//gbar_na=na_dend*spinescale		//see below
+			insert na12dend		cana_na12dend = cana_dend	gbar_na12dend=na12_dend		//see below	
+			//insert Kv 	gbar_Kv=Kv_dend*spinescale 		//see below
+			insert Kv7 	gbar_Kv7=Kv7_dend
+			//insert kca 	gbar_kca = gkca_dend*spinescale
+			//insert cad 
+			//insert ca 	gbar_ca = gca_dend*spinescale
+			//insert it2 	gcabar_it2 = git2_dend*spinescale
+			insert Kv1	gbar_Kv1 = Kv1_dend
+			insert cdp5 
+			insert cdp5r_dend	// reads VGCC specific current and computes specific cai for each channel
+				DCa_cdp5 = DCa_dend
+				k1buf_cdp5 = k1buf_dend
+				k2buf_cdp5 = k2buf_dend
+				TotalBuffer_cdp5 = TotalBuffer_dend
+				Dogb_cdp5 = Dogb_dend
+				k1ind_cdp5 = k1ind_dend
+				k2ind_cdp5 = k2ind_dend
+				TotalIndicator_cdp5 = TotalIndicator
+				TotalPump_cdp5 = TotalPump_dend
+			insert kdr gkdrbar_kdr= kdr_dend*spinescale
+			//insert cal gcalbar_cal=gcal_apic
+			insert Cal2 PcalBar_Cal2=gcal_apic
+			//insert can gcanbar_can=gcan_apic
+			insert cat gcatbar_cat=gcat_apic
+			//insert car2 gcarbar_car2=gcar2_apic
+			//insert CaPQ pmax_CaPQ = gcapq_apic
+			insert sk2 {gbar_sk2=gsk2_apic car2co_sk2=carcoeff_sk2 canco_sk2=cancoeff_sk2 catco_sk2=catcoeff_sk2 calco_sk2=calcoeff_sk2 capqco_sk2=capqcoeff_sk2}
+			insert bk2 {gkbar_bk2=gbk2_apic car2co_bk2=carcoeff_bk2 canco_bk2=cancoeff_bk2 catco_bk2=catcoeff_bk2 calco_bk2=calcoeff_bk2 capqco_bk2=capqcoeff_bk2}
+			
+			//insert CaN pmax_CaN=gcan_apic
+			insert CAn PcanBar_CAn=gcan_apic
+			insert CApq PcapqBar_CApq= gcapq_apic
+			
+			insert CaR pmax_CaR = gcar2_apic
+		}			 
+	}
+	
+	//for i=0,apicNum-1
+	
+	//forsec "apic"{
+	for i=0,apicNum-1 {
+		apic[i] {
+		
+			//g_pas=1/(Rm/spinescale)
+			g_pas=1/(Rm)
+			cm=Cm*spinescale
+
+			//insert na 	//gbar_na=na_dend*spinescale		//see below	
+			insert na12dend	 cana_na12dend = cana_dend	gbar_na12dend=na12_dend		//see below	
+			//insert Kv 	gbar_Kv=Kv_dend*spinescale 		//see below
+			insert Kv7 	gbar_Kv7=Kv7_dend
+			//insert kca 	gbar_kca = gkca_dend*spinescale
+			//insert cad 
+			//insert ca 	gbar_ca = gca_dend*spinescale
+			//insert it2 	gcabar_it2 = git2_apic*spinescale
+			insert Kv1	gbar_Kv1 = Kv1_dend
+			insert cdp5
+			insert cdp5r_dend 	// reads VGCC specific current and computes specific cai for each channel
+				DCa_cdp5 = DCa_dend
+				k1buf_cdp5 = k1buf_dend
+				k2buf_cdp5 = k2buf_dend
+				TotalBuffer_cdp5 = TotalBuffer_dend
+				Dogb_cdp5 = Dogb_dend
+				k1ind_cdp5 = k1ind_dend
+				k2ind_cdp5 = k2ind_dend
+				TotalIndicator_cdp5 = TotalIndicator
+				TotalPump_cdp5 = TotalPump_dend
+			insert kdr gkdrbar_kdr= kdr_dend*spinescale
+			//insert cal gcalbar_cal=gcal_apic
+			insert Cal2 PcalBar_Cal2=gcal_apic
+			//insert can gcanbar_can=gcan_apic
+			insert cat gcatbar_cat=gcat_apic
+			//insert car2 gcarbar_car2=gcar2_apic
+			//insert CaPQ pmax_CaPQ = gcapq_apic
+			insert sk2 {gbar_sk2=gsk2_apic car2co_sk2=carcoeff_sk2 canco_sk2=cancoeff_sk2 catco_sk2=catcoeff_sk2 calco_sk2=calcoeff_sk2 capqco_sk2=capqcoeff_sk2}
+			insert bk2 {gkbar_bk2=gbk2_apic car2co_bk2=carcoeff_bk2 canco_bk2=cancoeff_bk2 catco_bk2=catcoeff_bk2 calco_bk2=calcoeff_bk2 capqco_bk2=capqcoeff_bk2}
+			
+			//insert CaN pmax_CaN=gcan_apic
+			insert CAn PcanBar_CAn=gcan_apic
+			insert CApq PcapqBar_CApq= gcapq_apic
+			
+			insert CaR pmax_CaR = gcar2_apic
+		}			
+	}
+	
+
+//soma	
+	forsec "soma" {nseg=9}
+	forsec "soma"  {
+		insert na12 gbar_na12 = na12_soma	
+
+		// insert Kv 	gbar_Kv = Kv_soma
+		insert kdr gkdrbar_kdr = kdr_axon
+
+		insert cah 	pbar_cah = gca_soma
+
+		insert car	pbar_car = git2_soma
+
+		insert bks	gkbar_bks = gbkca_soma
+
+		insert Kv7 	gbar_Kv7 = Kv7_soma
+
+		insert Kv1 	gbar_Kv1 = Kv1_soma
+		
+		insert cdp5
+			DCa_cdp5 = DCa_dend
+			k1buf_cdp5 = k1buf_dend
+			k2buf_cdp5 = k2buf_dend
+			TotalBuffer_cdp5 = TotalBuffer_dend
+			Dogb_cdp5 = Dogb_dend
+			k1ind_cdp5 = k1ind_dend
+			k2ind_cdp5 = k2ind_dend
+			TotalIndicator_cdp5 = TotalIndicator
+			TotalPump_cdp5 = TotalPump_dend
+			
+		insert cdp5r
+		
+		insert sk 	gbar_sk = gskca_soma
+		
+		//stimulation
+		/*insert curclamp delay1_curclamp=cdelay1
+			delay2_curclamp=cdelay2
+			duration1_curclamp=cduration1
+			durataion2_curclamp=cduration2		               
+			amplitude1_curclamp=camplitude1		                
+			amplitude2_curclamp=camplitude2
+			icin_curclamp=cicin*/
+
+	}
+//collaterals note that axon[0] is AIS
+	for i=1,axonNum-1 {	
+		axon[i]  {
+			g_pas=1/Rm
+			insert nax gbar_nax = na_collat
+			insert Kv1 gbar_Kv1 = Kv1_collat
+			insert kdr gkdrbar_kdr = kdr_axon
+			//insert cdp5
+		}
+	}	
+
+//AIS
+	axon[0]  {
+		nseg=20
+
+		insert na16 gbar_na16(0:nagna) = na_ais1:na_ais2
+					gbar_na16(nagna:nagna+0.2) = na_ais2:na_ais3
+					gbar_na16(nagna+0.2:1) = na_ais3:na_ais4
+					
+		insert na12 gbar_na12(0:0.1) = na_121:na_122
+					gbar_na12(0.1:0.3) = na_122:na_122
+					gbar_na12(0.3:0.5) = na_122:na_123
+					gbar_na12(0.5:1) = na_123:na_124					
+
+		insert Kv1 	axon.gbar_Kv1(0:1)= Kv1_soma:Kv1_ais
+
+		insert Kv7 	axon.gbar_Kv7(0:0.4) = Kv7_soma:Kv7_soma
+					axon.gbar_Kv7(0.4:1) = Kv7_soma:Kv7_ais
+		//insert cad 
+		insert cah 	pbar_cah (0:cagca)= gca_ais1:gca_ais2
+					pbar_cah (cagca:1)= gca_ais2:gca_ais3
+
+		insert car 	pbar_car (0:1)= git2_ais1:git2_ais2
+					pbar_car (cagca:1)= git2_ais2:git2_ais3
+		
+		insert bks 	gkbar_bks(0:1) = gbkca_soma: gbkca_ais
+	        	
+		insert cdp5 
+			DCa_cdp5 = DCa_axon
+			k1buf_cdp5 = k1buf_axon
+			k2buf_cdp5 = k2buf_axon
+			TotalBuffer_cdp5 = TotalBuffer_axon
+			Dogb_cdp5 = Dogb_axon
+			k1ind_cdp5 = k1ind_axon
+			k2ind_cdp5 = k2ind_axon
+			TotalIndicator_cdp5 = TotalIndicator
+			TotalPump_cdp5 = TotalPump_axon
+                    
+        insert cdp5r 
+
+        insert sk 	gbar_sk = gskca_ais
+		
+		insert kdr gkdrbar_kdr=kdr_axon
+	}
+
+
+
+//main axon: i.e. myelin and nodes
+	for i=0,myNum-1 {
+		my[i] {
+			g_pas=1/(Rm * (sheaths + 1))
+			cm=Cm/(sheaths + 1)			
+			insert nax gbar_nax = na_myelin
+			insert Kv7 gbar_Kv7 = Kv7_soma
+			insert Kv1 gbar_Kv1 = 20
+			insert kdr gkdrbar_kdr=kdr_axon
+	
+			
+		}	
+	}	
+
+	for i=0,myNum-1 {
+		node[i]  {
+			g_pas=1/Rm
+			insert nax gbar_nax = na_node
+			insert Kv1 gbar_Kv1 = Kv1_ais
+			insert Kv7 gbar_Kv7 = Kv7_ais
+			insert kdr gkdrbar_kdr=kdr_axon
+		}
+	}	
+
+
+	forall ena=60
+	forall ek=-88
+
+// ---------------------------------------------------------------------
+// Calcium enhancement to reproduce frequency effect (Larkum et al,1999)
+// ----------------------------------------------------------------------
+
+	forall { 	
+		vh1_it2    = 56
+		vh2_it2    = 415
+		ah_it2     = 30				
+		v12m_it2   = 45
+		v12h_it2   = 65  
+		am_it2     = 3
+		vshift_it2 = 10
+		vm1_it2    = 50
+		vm2_it2    = 125
+	}
+
+	/*forall if(ismembrane("ca_ion")) {
+		eca = 140
+		ion_style("ca_ion",0,1,0,0,0)
+		vshift_ca = 8
+	}*/
+
+	forall 	{
+		caix_kca  = 0.7  	// Ca-sensitivity of Kca channel
+		Ra_kca    = 1  	// Activation rate Kca 
+		Rb_kca    = 2.5	// inactivation rate Kca, important ! 
+		mi1_cah=1.2
+        ti1_cah=1
+	}
+
+	//possibility to implement hot-zone
+	access soma
+	area(0.5)
+	distance()
+	//apical dendrites
+	/*for i=0,apicNum-1 {
+		apic[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if(distance(pos) > gCa_hot_start && distance(pos) < gCa_hot_end) {
+					gbar_ca(pos)	=	gca_dend*gCa_HVA_apic_hot_fac*spinescale
+					gcabar_it2(pos)	=	git2_apic*gCa_LVAst_apic_hot_fac*spinescale
+				}
+			}
+		}
+	}*/
+
+// --------------------------------------------------------------------------
+// Dendritic exponential distribution of Ih (Kole et al., 2006)
+// --------------------------------------------------------------------------	
+
+	forall {insert ih} 
+		
+	access soma
+	area(0.5)
+	distance()
+
+	//basal dendrites
+	for i=0,dendNum-1 {
+		dend[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_ih(pos)=(ih_dend+(A_ih_dend*(exp(tau_ih_dend*distance(pos)))))*spinescale	
+			}
+		}
+	}
+
+	//apical dendrites
+	for i=0,apicNum-1 {
+		apic[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_ih(pos)=(ih_dend+(A_ih_dend*(exp(tau_ih_dend*distance(pos)))))*spinescale	
+			}
+		}
+	}
+
+	soma {gbar_ih = ih_soma}	
+
+	for i=1,axonNum-1 {
+		axon[i] {gbar_ih=ih_axon}
+	}
+// --------------------------------------------------------------------------
+// Dendritic linear distribution of na (Keren et al., 2009, JPhysiol, 587:1413-37)
+// --------------------------------------------------------------------------
+
+	access soma
+	area(0.5)
+	distance()
+		
+	//basal dendrites
+	/*for i=0,dendNum-1 {
+		dend[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if (distance(pos) >= max_distance_basal)  {
+					gbar_na(pos)=na_dend*spinescale	
+				} else {
+					gbar_na(pos)=(na_dend+(na_soma-na_dend)*(1-(distance(pos)/max_distance_basal)))*spinescale	
+				}
+			}
+		}
+	}
+
+	//apical dendrites
+	for i=0,apicNum-1 {
+		apic[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if (distance(pos) >= max_distance_apic)  {
+					gbar_na(pos)=na_dend*spinescale	
+				} else {
+					gbar_na(pos)=(na_dend+(na_soma-na_dend)*(1-(distance(pos)/max_distance_apic)))*spinescale	
+				}
+			}
+		}
+	}*/
+
+	//basal dendrites
+	/*for i=0,dendNum-1 {
+		dend[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if (distance(pos) >= max_distance_basal)  {
+					//gbar_na12(pos)=na_dend*spinescale
+					gbar_na12dend(pos)=na12_dend*spinescale
+				} else {
+					//gbar_na12(pos)=(na_dend+(na_soma-na_dend)*(1-(distance(pos)/max_distance_basal)))*spinescale	
+					gbar_na12dend(pos)=(na12_dend+(na12_soma-na12_dend)*(1-(distance(pos)/max_distance_basal)))*spinescale	
+				}
+			}
+		}
+	}*/
+
+	//apical dendrites
+	/*for i=0,apicNum-1 {
+		apic[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				if (distance(pos) >= max_distance_apic)  {
+					//gbar_na12(pos)=na_dend*spinescale	
+					gbar_na12dend(pos)=na12_dend*spinescale
+				} else {
+					//gbar_na12(pos)=(na_dend+(na_soma-na_dend)*(1-(distance(pos)/max_distance_apic)))*spinescale	
+					gbar_na12dend(pos)=(na12_dend+(na12_soma-na12_dend)*(1-(distance(pos)/max_distance_apic)))*spinescale	
+				}
+			}
+		}
+	}*/
+	
+	
+
+// --------------------------------------------------------------------------
+// Dendritic linear distribution of Kv and Kv1 (Keren et al., 2009, JPhysiol, 587:1413-37)
+// --------------------------------------------------------------------------
+	// kdr instead of Kv!! (Laila Blömer)
+	
+	access soma
+	area(0.5)
+	distance()
+		
+	//basal dendrites
+	for i=0,dendNum-1 {
+		dend[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				//kdr instead of Kv, follows na12 distribution
+				if (distance(pos) >= max_distance_basal)  {
+					gkdrbar_kdr(pos)=kdr_dend*spinescale	
+				} else {
+					gkdrbar_kdr(pos) = (kdr_dend+(kdr_soma-kdr_dend)*(1-(distance(pos)/max_distance_basal)))*spinescale		
+				}
+				//gbar_Kv(pos)=(Kv_dend+(Kv_soma-Kv_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale
+				
+				gbar_Kv1(pos)=(Kv1_dend+(Kv1_soma-Kv1_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+			}
+		}
+	}
+	
+	//apical dendrites
+	for i=0,apicNum-1 {
+		apic[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_Kv1(pos)=(Kv1_dend+(Kv1_soma-Kv1_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+				//print i, distance(pos), gbar_Kv1(pos),Kv1_dend,Kv1_soma
+				// kdr follows distribution of na12
+				if (distance(pos) >= max_distance_apic)  {
+					gkdrbar_kdr(pos)=kdr_dend*spinescale	
+				} else {
+					gkdrbar_kdr(pos) = (kdr_dend+(kdr_soma-kdr_dend)*(1-(distance(pos)/max_distance_apic)))*spinescale
+				}
+			}
+		}
+	}
+	
+	//apical dendrites
+	/*for i=0,apicNum-1 {
+		apic[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				gbar_Kv(pos)=(Kv_dend+(Kv_soma-Kv_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+				gbar_Kv1(pos)=(Kv1_dend+(Kv1_soma-Kv1_dend)*exp(-distance(pos)/length_constant_Kv_and_Kv1))*spinescale	
+			}
+		}
+	}*/
+
+	// local block of channels defined in ses file
+	simu_block()
+
+}
+
+
+/*proc def(){ 
+	
+//******AXON************
+cmaax=axon.cm
+gpasax=axon.g_pas
+epasax=axon.e_pas
+RaAx=axon.Ra
+	
+//******DEND-BASAL************
+cmdend=dend.cm
+gpasdend=dend.g_pas
+epasdend=dend.e_pas
+Radend=dend.Ra
+
+//******DEND-APICAL************
+cmapic=apic.cm
+gpasapic=apic.g_pas
+epasapic=apic.e_pas
+Raapic=apic.Ra
+
+	
+//**********SOMA********
+cmsoma=soma.cm
+gpassoma=soma.g_pas
+epassoma=soma.e_pas
+Rasoma=soma.Ra
+
+}*/
+
+proc testAp() {
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "---------------------------------------------------------         A  P  I   C         ---------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+
+	for i=0,apicNum-1 {
+		apic[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				print " i ",i, " nseg ", j, " pos ",pos, " distance(pos) ",distance(pos)
+				print " 		gbar_ih ", gbar_ih(pos), " gbar_na ", gbar_na12dend(pos), " gbar_kdr ", gkdrbar_kdr(pos), " gbar_Kv1 ", gbar_Kv1(pos)
+			}
+		}
+	}
+}
+
+
+proc testBa() {
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "---------------------------------------------------------         B  A  S  A   L        -------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	print "-----------------------------------------------------------------------------------------------------------------------------------------------------------"
+	for i=0,dendNum-1 {
+		dend[i] {
+			for j=1,nseg {
+				pos=0.5/nseg+(j-1)/nseg
+				print " i ",i, " nseg ", j, " pos ",pos, " distance(pos) ",distance(pos)
+				print " 		gbar_ih ", gbar_ih(pos), " gbar_na ", gbar_na(pos), " gbar_Kv ", gbar_Kv(pos), " gbar_Kv1 ", gbar_Kv1(pos)
+			}
+		}
+	}
+}
+
+//current balancing
+
+proc init() {
+t=0
+//print "primo"
+forall {
+        v=Vrest
+        if (ismembrane("na12")||ismembrane("na16") || ismembrane("nax") || ismembrane("na12dend")) {ena=60}
+        if (ismembrane("kdr") || ismembrane("bks") || ismembrane("sk")|| ismembrane("Kv7")|| ismembrane("Kv1")|| ismembrane("bk2") || ismembrane("sk2")) {ek=-88}
+        if (ismembrane("ih") ) {eh_ih=-47}
+	}
+	finitialize(Vrest)
+        fcurrent()
+//print "fine primo"
+       //forall { v=Vrest}
+//finitialize(Vrest)
+//print "inizio_secondo"
+print "current balance"       
+	   forall {
+for (x) {
+if (ismembrane("na12")||ismembrane("na16") || ismembrane("nax") || ismembrane("na12dend")) {e_pas(x)=v(x)+(ina(x))/g_pas(x)}
+//if (ismembrane("na12")) {e_pas(x)=v(x)+(ina(x)+ica(x))/g_pas(x)}
+//if (ismembrane("na12")||ismembrane("na16") || ismembrane("na12dend")) {e_pas(x)=e_pas(x)+(ica(x)+ik(x)+ina(x))/g_pas(x)}
+if (ismembrane("kdr") || ismembrane("bks") || ismembrane("sk")|| ismembrane("Kv7")|| ismembrane("Kv1")|| ismembrane("bk2") || ismembrane("sk2")) {e_pas(x)=e_pas(x)+(ik(x))/g_pas(x)}
+if (ismembrane("ih")) {e_pas(x)=e_pas(x)+Ih_ih(x)/g_pas(x)}	
+if (ismembrane("car")) 	{e_pas(x)=e_pas(x)+(itca(x))/g_pas(x)}	
+if (ismembrane("cah")) 	{e_pas(x)=e_pas(x)+(inca(x))/g_pas(x)}	
+if (ismembrane("Cal2")) 	{e_pas(x)=e_pas(x)+(ical2(x))/g_pas(x)}
+if (ismembrane("CAn")) 	{e_pas(x)=e_pas(x)+(ican(x))/g_pas(x)}	
+if (ismembrane("CaR")) 	{e_pas(x)=e_pas(x)+(icar2(x))/g_pas(x)}	
+if (ismembrane("cat")) 	{e_pas(x)=e_pas(x)+(icat(x))/g_pas(x)}
+if (ismembrane("Capq")) 	{e_pas(x)=e_pas(x)+(icapq(x))/g_pas(x)}
+if (ismembrane("car")||ismembrane("cah")|| ismembrane("Cal2")|| ismembrane("cat")||  ismembrane("CAn")|| ismembrane("Capq")|| ismembrane("CaR") || ismembrane("na12")||ismembrane("na16") || ismembrane("na12dend") ){e_pas(x)=e_pas(x)+(ica(x))/g_pas(x)} 			
+//if (ismembrane("it2")) {e_pas(x)=e_pas(x)+ica(x)/g_pas(x)}											
+//if (ismembrane("car2")||ismembrane("can")||ismembrane("cal")||ismembrane("cat")){e_pas(x)=e_pas(x)+(ica(x))/g_pas(x)}
+
+}
+}
+//print "fine secondo"
+//finitialize(Vrest)
+//	fcurrent()
+	cvode.re_init()
+    cvode.event(tstop)
+	access soma
+}
+
+
+access axon[0]
+L=40
+//undernai undersamples nai from 10kHz to 5kHz to match experiments
+insert undernai
+access soma
+
+objref a[3],apc
+a=new Vector()
+apc=new APCount(0.5)
+apc.record(a)
+
+proc run_N(){ 
+	for i=0,4 {
+		ns.start=35+5*i
+		init()
+		run ()
+		for j=0,a.size()-1{
+			print ns.start,a.x[j]
+}
+}
+}

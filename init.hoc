@@ -1,0 +1,35 @@
+/*proc init() {
+t=0
+        forall { v=v_init}
+finitialize(v_init)
+        fcurrent()
+        forall {
+for (x) {
+if (ismembrane("na12")||ismembrane("na16")){e_pas(x)=v(x)+(ina(x)+ik(x))/g_pas(x)}
+if (ismembrane("hd")) {e_pas(x)=e_pas(x)+i_hd(x)/g_pas(x)}
+if (ismembrane("car")||ismembrane("cah")||ismembrane("cal")){e_pas(x)=v(x)+(ica(x))/g_pas(x)}
+if (ismembrane("it2")) {e_pas(x)=e_pas(x)+ica(x)/g_pas(x)}
+}
+}
+}*/
+
+proc init() {
+t=0
+        forall { v=v_init}
+finitialize(v_init)
+        
+        forall {
+for (x) {
+if (ismembrane("na12")||ismembrane("na16")){e_pas(x)=v(x)+(ina(x)+ik(x))/g_pas(x)}
+if (ismembrane("hd")) {e_pas(x)=e_pas(x)+i_hd(x)/g_pas(x)}						
+if (ismembrane("car")||ismembrane("cah")||ismembrane("cal")){e_pas(x)=v(x)+(ica(x))/g_pas(x)} 		// calcium conductance in seg axon[0] and soma	
+if (ismembrane("it2")) {e_pas(x)=e_pas(x)+ica(x)/g_pas(x)}											// calcium channels in seg dend
+if (ismembrane("car2")||ismembrane("can")||ismembrane("cal")||ismembrane("cat")){e_pas(x)=v(x)+(ica(x))/g_pas(x)}		// calcium channels in seg apic
+}
+}
+finitialize(v_init)
+	fcurrent()
+	cvode.re_init()
+}
+
+

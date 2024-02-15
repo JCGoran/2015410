@@ -1,0 +1,4 @@
+vhm_bk2=-10
+kb_bk2=6.6
+bkexp_bk2=10
+canco_bk2=10
