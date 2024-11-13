@@ -115,9 +115,13 @@ seedn=3
 nsyn=20
 
 ra = new Random ()
+ra.Random123()
 rb= new Random ()
+rb.Random123()
 rc= new Random ()
+rc.Random123()
 rd= new Random ()
+rd.Random123()
 ra.uniform(0,apicNum-1)
 rb.uniform(0,1)
 rc.uniform(0,oblist.size())
